@@ -1,11 +1,11 @@
-#include "node.h"
+#include "rnode.h"
 #include <nng/compat/nanomsg/nn.h>
 #include <nng/compat/nanomsg/bus.h>
 #include <stdio.h>
 #include <string.h>
-#include "node_sem.h"
+#include "rnode_sem.h"
 
-int node_bind(struct node* n, char* url)
+int node_bind(struct rnode* n, char* url)
 {
     char ipc[30];
     int  i = 0;
@@ -21,7 +21,7 @@ int node_bind(struct node* n, char* url)
     return -1;
 }
 
-bool node_connect(struct node* n, int num, char* url)
+bool node_connect(struct rnode* n, int num, char* url)
 {
     char ipc[30];
     int  index = num - 1;
@@ -38,7 +38,7 @@ bool node_connect(struct node* n, int num, char* url)
     return true;
 }
 
-bool node_create(struct node* n, char* url)
+bool rnode_create(struct rnode* n, char* url)
 {
     if (!node_sem_init())
     {
@@ -72,7 +72,7 @@ bool node_create(struct node* n, char* url)
     return true;
 }
 
-bool node_receive(struct node* n, void* data, size_t len)
+bool rnode_receive(struct rnode* n, void* data, size_t len)
 {
     int rc = nn_recv(n->sock, data, len, 0);
     if (rc < 0)
@@ -86,7 +86,7 @@ bool node_receive(struct node* n, void* data, size_t len)
     return true;
 }
 
-bool node_send(struct node* n, void* data, size_t len)
+bool rnode_send(struct rnode* n, void* data, size_t len)
 {
     int rc = nn_send(n->sock, data, len, 0);
     if (rc < 0)
@@ -100,7 +100,7 @@ bool node_send(struct node* n, void* data, size_t len)
     return true;
 }
 
-bool node_delete(struct node* n)
+bool rnode_delete(struct rnode* n)
 {
     int rc = nn_close(n->sock);
     if ((rc != 0) && (errno != EBADF && errno != ETERM))

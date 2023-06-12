@@ -1,5 +1,5 @@
 #include "test_node.h"
-#include "../node_sem.h"
+#include "../rnode_sem.h"
 #include "../runit/src/runit.h"
 
 int main()

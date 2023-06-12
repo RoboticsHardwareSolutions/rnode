@@ -1,6 +1,6 @@
 #include "test_node.h"
-#include "../node.h"
-#include "../../runit/src/runit.h"
+#include "../rnode.h"
+#include "../runit/src/runit.h"
 #include "test_defs.h"
 #include "../rtimeout/rtimeout.h"
 #include "unistd.h"
@@ -16,7 +16,7 @@
 
 struct thread_data
 {
-    struct node  nd;
+    struct rnode nd;
     bool         done;
     pthread_t    thread;
     radio_packet rp;
@@ -34,12 +34,12 @@ radio_packet sp = {.preamble       = PREAMBLE_SET_ID,
 void* thread_loop_sender(void* arg)
 {
     struct thread_data* td = (struct thread_data*) arg;
-    if (!node_create(&td->nd, URL_DATA_EXCHANGE_IN_PROC))
+    if (!rnode_create(&td->nd, URL_DATA_EXCHANGE_IN_PROC))
     {
         printf("cannot create node sender = %p\n", (void*) &td->nd);
     }
     usleep(10000);
-    if (node_send(&td->nd, &sp, sizeof(radio_packet)))
+    if (rnode_send(&td->nd, &sp, sizeof(radio_packet)))
     {
         td->done = true;
     }
@@ -49,7 +49,7 @@ void* thread_loop_sender(void* arg)
         printf("cannot send  = %p\n", (void*) &td->nd);
     }
     sleep(2);
-    if (!node_delete(&td->nd))
+    if (!rnode_delete(&td->nd))
     {
         printf("cannot delete node sender = %p\n", (void*) &td->nd);
     }
@@ -60,7 +60,7 @@ void* thread_loop_receivers(void* arg)
 {
     struct thread_data* td = (struct thread_data*) arg;
     rt                  timeout;
-    if (!node_create(&td->nd, URL_DATA_EXCHANGE_IN_PROC))
+    if (!rnode_create(&td->nd, URL_DATA_EXCHANGE_IN_PROC))
     {
         printf("cannot create node receiver = %p\n", (void*) &td->nd);
     }
@@ -68,12 +68,12 @@ void* thread_loop_receivers(void* arg)
     rt_set(&timeout, 2000000);
     while (!(rt_timed_out(&timeout) > 0))
     {
-        if (node_receive(&td->nd, &td->rp, sizeof(radio_packet)))
+        if (rnode_receive(&td->nd, &td->rp, sizeof(radio_packet)))
         {
             if (packet_cmp(&sp, &td->rp))
             {
                 td->done = true;
-                if (!node_delete(&td->nd))
+                if (!rnode_delete(&td->nd))
                 {
                     printf("error delete node = %p\n", (void*) &td->nd);
                 }
@@ -88,7 +88,7 @@ void* thread_loop_receivers(void* arg)
     }
     printf("error receive packet node = %p sock = %d eid = %d\n", (void*) &td->nd, td->nd.sock, td->nd.eid);
     td->done = false;
-    if (!node_delete(&td->nd))
+    if (!rnode_delete(&td->nd))
     {
         printf("error delete node = %p\n", (void*) &td->nd);
     }
@@ -163,9 +163,9 @@ void test_node_inter_proc(void)
 
 void test_node_group_inproc3(void)
 {
-    struct node node0 = {0};
-    struct node node1 = {0};
-    struct node node2 = {0};
+    struct rnode node0 = {0};
+    struct rnode node1 = {0};
+    struct rnode node2 = {0};
 
     radio_packet spinpros = {.preamble       = PREAMBLE_SET_ID,
                              .id             = 0x01,
@@ -175,44 +175,44 @@ void test_node_group_inproc3(void)
     radio_packet rp1      = {0};
     radio_packet rp2      = {0};
 
-    runit_true(node_create(&node0, URL_DATA_EXCHANGE_IN_PROC));
-    runit_true(node_create(&node1, URL_DATA_EXCHANGE_IN_PROC));
-    runit_true(node_create(&node2, URL_DATA_EXCHANGE_IN_PROC));
+    runit_true(rnode_create(&node0, URL_DATA_EXCHANGE_IN_PROC));
+    runit_true(rnode_create(&node1, URL_DATA_EXCHANGE_IN_PROC));
+    runit_true(rnode_create(&node2, URL_DATA_EXCHANGE_IN_PROC));
     usleep(1000);
 
-    runit_true(node_send(&node0, &spinpros, sizeof(radio_packet)));
+    runit_true(rnode_send(&node0, &spinpros, sizeof(radio_packet)));
 
-    runit_false(node_receive(&node0, &rp1, sizeof(radio_packet))); /** Node do not must receive self message*/
+    runit_false(rnode_receive(&node0, &rp1, sizeof(radio_packet))); /** Node do not must receive self message*/
 
-    runit_true(node_receive(&node1, &rp1, sizeof(radio_packet)));
+    runit_true(rnode_receive(&node1, &rp1, sizeof(radio_packet)));
     runit_true(packet_cmp(&spinpros, &rp1));
 
-    runit_true(node_receive(&node2, &rp2, sizeof(radio_packet)));
+    runit_true(rnode_receive(&node2, &rp2, sizeof(radio_packet)));
     runit_true(packet_cmp(&spinpros, &rp2));
 
-    runit_false(node_receive(&node0, &rp1, sizeof(radio_packet)));
-    runit_false(node_receive(&node1, &rp1, sizeof(radio_packet)));
-    runit_false(node_receive(&node2, &rp1, sizeof(radio_packet)));
+    runit_false(rnode_receive(&node0, &rp1, sizeof(radio_packet)));
+    runit_false(rnode_receive(&node1, &rp1, sizeof(radio_packet)));
+    runit_false(rnode_receive(&node2, &rp1, sizeof(radio_packet)));
 
     usleep(100);
 
-    runit_true(node_delete(&node1));
-    runit_true(node_delete(&node2));
-    runit_true(node_delete(&node0));
+    runit_true(rnode_delete(&node1));
+    runit_true(rnode_delete(&node2));
+    runit_true(rnode_delete(&node0));
 
     usleep(100);
 }
 
 void test_node_group_inproc8(void)
 {
-    struct node node0 = {0};
-    struct node node1 = {0};
-    struct node node2 = {0};
-    struct node node3 = {0};
-    struct node node4 = {0};
-    struct node node5 = {0};
-    struct node node6 = {0};
-    struct node node7 = {0};
+    struct rnode node0 = {0};
+    struct rnode node1 = {0};
+    struct rnode node2 = {0};
+    struct rnode node3 = {0};
+    struct rnode node4 = {0};
+    struct rnode node5 = {0};
+    struct rnode node6 = {0};
+    struct rnode node7 = {0};
 
     radio_packet sp1 = {.preamble       = 0xFFFF,
                         .id             = 0x08,
@@ -241,27 +241,27 @@ void test_node_group_inproc8(void)
     radio_packet rp7 = {0};
     radio_packet rp8 = {0};
 
-    runit_true(node_create(&node0, URL_DATA_EXCHANGE_IN_PROC));
-    runit_true(node_create(&node1, URL_DATA_EXCHANGE_IN_PROC));
-    runit_true(node_create(&node2, URL_DATA_EXCHANGE_IN_PROC));
-    runit_true(node_create(&node3, URL_DATA_EXCHANGE_IN_PROC));
-    runit_true(node_create(&node4, URL_DATA_EXCHANGE_IN_PROC));
-    runit_true(node_create(&node5, URL_DATA_EXCHANGE_IN_PROC));
-    runit_true(node_create(&node6, URL_DATA_EXCHANGE_IN_PROC));
-    runit_true(node_create(&node7, URL_DATA_EXCHANGE_IN_PROC));
+    runit_true(rnode_create(&node0, URL_DATA_EXCHANGE_IN_PROC));
+    runit_true(rnode_create(&node1, URL_DATA_EXCHANGE_IN_PROC));
+    runit_true(rnode_create(&node2, URL_DATA_EXCHANGE_IN_PROC));
+    runit_true(rnode_create(&node3, URL_DATA_EXCHANGE_IN_PROC));
+    runit_true(rnode_create(&node4, URL_DATA_EXCHANGE_IN_PROC));
+    runit_true(rnode_create(&node5, URL_DATA_EXCHANGE_IN_PROC));
+    runit_true(rnode_create(&node6, URL_DATA_EXCHANGE_IN_PROC));
+    runit_true(rnode_create(&node7, URL_DATA_EXCHANGE_IN_PROC));
     usleep(100);
 
     /** first message */
-    runit_true(node_send(&node7, &sp1, sizeof(radio_packet)));
+    runit_true(rnode_send(&node7, &sp1, sizeof(radio_packet)));
 
-    runit_true(node_receive(&node0, &rp1, sizeof(radio_packet)));
-    runit_true(node_receive(&node1, &rp2, sizeof(radio_packet)));
-    runit_true(node_receive(&node2, &rp3, sizeof(radio_packet)));
-    runit_true(node_receive(&node3, &rp4, sizeof(radio_packet)));
-    runit_true(node_receive(&node4, &rp5, sizeof(radio_packet)));
-    runit_true(node_receive(&node5, &rp6, sizeof(radio_packet)));
-    runit_true(node_receive(&node6, &rp7, sizeof(radio_packet)));
-    runit_false(node_receive(&node7, &rp8, sizeof(radio_packet)));
+    runit_true(rnode_receive(&node0, &rp1, sizeof(radio_packet)));
+    runit_true(rnode_receive(&node1, &rp2, sizeof(radio_packet)));
+    runit_true(rnode_receive(&node2, &rp3, sizeof(radio_packet)));
+    runit_true(rnode_receive(&node3, &rp4, sizeof(radio_packet)));
+    runit_true(rnode_receive(&node4, &rp5, sizeof(radio_packet)));
+    runit_true(rnode_receive(&node5, &rp6, sizeof(radio_packet)));
+    runit_true(rnode_receive(&node6, &rp7, sizeof(radio_packet)));
+    runit_false(rnode_receive(&node7, &rp8, sizeof(radio_packet)));
 
     runit_true(packet_cmp(&sp1, &rp1));
     runit_true(packet_cmp(&sp1, &rp2));
@@ -272,16 +272,16 @@ void test_node_group_inproc8(void)
     runit_true(packet_cmp(&sp1, &rp7));
 
     /** second message */
-    runit_true(node_send(&node6, &sp2, sizeof(radio_packet)));
+    runit_true(rnode_send(&node6, &sp2, sizeof(radio_packet)));
     usleep(1000);
-    runit_true(node_receive(&node0, &rp1, sizeof(radio_packet)));
-    runit_true(node_receive(&node1, &rp2, sizeof(radio_packet)));
-    runit_true(node_receive(&node2, &rp3, sizeof(radio_packet)));
-    runit_true(node_receive(&node3, &rp4, sizeof(radio_packet)));
-    runit_true(node_receive(&node4, &rp5, sizeof(radio_packet)));
-    runit_true(node_receive(&node5, &rp6, sizeof(radio_packet)));
-    runit_false(node_receive(&node6, &rp7, sizeof(radio_packet)));
-    runit_true(node_receive(&node7, &rp8, sizeof(radio_packet)));
+    runit_true(rnode_receive(&node0, &rp1, sizeof(radio_packet)));
+    runit_true(rnode_receive(&node1, &rp2, sizeof(radio_packet)));
+    runit_true(rnode_receive(&node2, &rp3, sizeof(radio_packet)));
+    runit_true(rnode_receive(&node3, &rp4, sizeof(radio_packet)));
+    runit_true(rnode_receive(&node4, &rp5, sizeof(radio_packet)));
+    runit_true(rnode_receive(&node5, &rp6, sizeof(radio_packet)));
+    runit_false(rnode_receive(&node6, &rp7, sizeof(radio_packet)));
+    runit_true(rnode_receive(&node7, &rp8, sizeof(radio_packet)));
 
     runit_true(packet_cmp(&sp2, &rp1));
     runit_true(packet_cmp(&sp2, &rp2));
@@ -292,16 +292,16 @@ void test_node_group_inproc8(void)
     runit_true(packet_cmp(&sp2, &rp8));
 
     /** third message */
-    runit_true(node_send(&node5, &sp3, sizeof(radio_packet)));
+    runit_true(rnode_send(&node5, &sp3, sizeof(radio_packet)));
     usleep(1000);
-    runit_true(node_receive(&node0, &rp1, sizeof(radio_packet)));
-    runit_true(node_receive(&node1, &rp2, sizeof(radio_packet)));
-    runit_true(node_receive(&node2, &rp3, sizeof(radio_packet)));
-    runit_true(node_receive(&node3, &rp4, sizeof(radio_packet)));
-    runit_true(node_receive(&node4, &rp5, sizeof(radio_packet)));
-    runit_false(node_receive(&node5, &rp6, sizeof(radio_packet)));
-    runit_true(node_receive(&node6, &rp7, sizeof(radio_packet)));
-    runit_true(node_receive(&node7, &rp8, sizeof(radio_packet)));
+    runit_true(rnode_receive(&node0, &rp1, sizeof(radio_packet)));
+    runit_true(rnode_receive(&node1, &rp2, sizeof(radio_packet)));
+    runit_true(rnode_receive(&node2, &rp3, sizeof(radio_packet)));
+    runit_true(rnode_receive(&node3, &rp4, sizeof(radio_packet)));
+    runit_true(rnode_receive(&node4, &rp5, sizeof(radio_packet)));
+    runit_false(rnode_receive(&node5, &rp6, sizeof(radio_packet)));
+    runit_true(rnode_receive(&node6, &rp7, sizeof(radio_packet)));
+    runit_true(rnode_receive(&node7, &rp8, sizeof(radio_packet)));
 
     runit_true(packet_cmp(&sp3, &rp1));
     runit_true(packet_cmp(&sp3, &rp2));
@@ -311,16 +311,16 @@ void test_node_group_inproc8(void)
     runit_true(packet_cmp(&sp3, &rp7));
     runit_true(packet_cmp(&sp3, &rp8));
 
-    runit_false(node_receive(&node0, &rp1, sizeof(radio_packet))); /** Node do not must receive self message*/
-    runit_false(node_receive(&node1, &rp1, sizeof(radio_packet)));
-    runit_false(node_receive(&node2, &rp1, sizeof(radio_packet)));
+    runit_false(rnode_receive(&node0, &rp1, sizeof(radio_packet))); /** Node do not must receive self message*/
+    runit_false(rnode_receive(&node1, &rp1, sizeof(radio_packet)));
+    runit_false(rnode_receive(&node2, &rp1, sizeof(radio_packet)));
 
-    runit_true(node_delete(&node0));
-    runit_true(node_delete(&node1));
-    runit_true(node_delete(&node2));
-    runit_true(node_delete(&node3));
-    runit_true(node_delete(&node4));
-    runit_true(node_delete(&node5));
-    runit_true(node_delete(&node6));
-    runit_true(node_delete(&node7));
+    runit_true(rnode_delete(&node0));
+    runit_true(rnode_delete(&node1));
+    runit_true(rnode_delete(&node2));
+    runit_true(rnode_delete(&node3));
+    runit_true(rnode_delete(&node4));
+    runit_true(rnode_delete(&node5));
+    runit_true(rnode_delete(&node6));
+    runit_true(rnode_delete(&node7));
 }

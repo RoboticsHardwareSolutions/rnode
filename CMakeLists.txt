@@ -11,10 +11,10 @@ find_package(nanomsg)
 
 
 set(RNODE_FILES
-        node.c
-        node.h
-        node_sem.c
-        node_sem.h)
+        rnode.c
+        rnode.h
+        rnode_sem.c
+        rnode_sem.h)
 
 set(RNODE_TEST_FILES
         tests/test.c
@@ -47,11 +47,12 @@ target_include_directories(lib${PROJECT_NAME}
         PUBLIC ./
         PRIVATE ${nanomsg_SOURCE_DIR})
 
-target_link_libraries(lib${PROJECT_NAME} nanomsgr)
+target_link_libraries(lib${PROJECT_NAME} PRIVATE nanomsg)
 
 
 add_executable(test${PROJECT_NAME} ${RNODE_TEST_FILES} ${RNODE_FILES})
-target_link_libraries(test${PROJECT_NAME} nanomsg rlog rtimeout runit)
+target_link_libraries(test${PROJECT_NAME} PRIVATE nanomsg  rlog rtimeout runit)
+
 
 
 #print_all_variables()
