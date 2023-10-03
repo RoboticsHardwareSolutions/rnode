@@ -33,7 +33,6 @@ if (NOT clang_format)
     message(STATUS "Could not locate clang-format")
 else ()
     file(GLOB format_files ${RNODE_TEST_FILES} ${RNODE_FILES})
-    message(STATUS "Using clang-format: ${clang_format}; files: ${format_files}")
     add_custom_target(${PROJECT_NAME}_format COMMAND ${clang_format} -i -fallback-style=none -style=file --verbose ${format_files})
 endif ()
 
