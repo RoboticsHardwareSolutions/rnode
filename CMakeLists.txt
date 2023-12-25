@@ -40,21 +40,23 @@ endif ()
 add_subdirectory(runit)
 add_subdirectory(rlog)
 add_subdirectory(rtimeout)
-add_library(lib${PROJECT_NAME} STATIC ${RNODE_FILES})
+add_library(${PROJECT_NAME} STATIC ${RNODE_FILES})
 
-target_include_directories(lib${PROJECT_NAME}
+target_include_directories(${PROJECT_NAME}
         PUBLIC ./
         PRIVATE ${nanomsg_SOURCE_DIR})
 
-target_link_libraries(lib${PROJECT_NAME} PRIVATE nanomsg)
+target_link_libraries(${PROJECT_NAME} PRIVATE nanomsg)
 
 
-add_executable(test${PROJECT_NAME} ${RNODE_TEST_FILES} ${RNODE_FILES})
-target_link_libraries(test${PROJECT_NAME} PRIVATE nanomsg  rlog rtimeout runit)
+# Test runner executable testing the static library
+if (NOT ${CMAKE_SYSTEM_NAME} MATCHES Generic)
+    add_executable(${PROJECT_NAME}_test ${RNODE_TEST_FILES} ${RNODE_FILES})
+    target_link_libraries(${PROJECT_NAME}_test PRIVATE nanomsg rlog rtimeout runit)
 
 
-
-#print_all_variables()
-enable_testing()
-add_test(NAME testrbus COMMAND ./testrbus)
+    #print_all_variables()
+    enable_testing()
+    add_test(NAME testrbus COMMAND ./testrbus)
+endif ()
 
