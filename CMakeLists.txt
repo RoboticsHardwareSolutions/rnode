@@ -49,14 +49,8 @@ target_include_directories(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME} PRIVATE nanomsg)
 
 
-# Test runner executable testing the static library
 if (NOT ${CMAKE_SYSTEM_NAME} MATCHES Generic)
     add_executable(${PROJECT_NAME}_test ${RNODE_TEST_FILES} ${RNODE_FILES})
     target_link_libraries(${PROJECT_NAME}_test PRIVATE nanomsg rlog rtimeout runit)
-
-
-    #print_all_variables()
-    enable_testing()
-    add_test(NAME testrbus COMMAND ./testrbus)
 endif ()
 
