@@ -1,6 +1,7 @@
 #include "help.h"
 #include "../rlog/rlog.h"
 #include "stdio.h"
+#include "string.h"
 
 void print_rp(radio_packet* pack)
 {
