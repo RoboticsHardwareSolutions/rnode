@@ -1,12 +1,12 @@
 #include "test_proc.h"
 #include "stdio.h"
-#include "../rnode.h"
-#include "../rtimeout/rtimeout.h"
+#include "rnode.h"
+#include "rtimeout.h"
 #include "unistd.h"
 #include "stdlib.h"
 #include "urls.h"
 #include "test_defs.h"
-#include "../runit/src/runit.h"
+#include "runit.h"
 #include "help.h"
 
 void test_send_packet_and_wait_incremented_echo(void)

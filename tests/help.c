@@ -1,5 +1,5 @@
 #include "help.h"
-#include "../rlog/rlog.h"
+#include "rlog.h"
 #include "stdio.h"
 #include "string.h"
 

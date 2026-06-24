@@ -29,47 +29,45 @@ set(RNODE_TEST_FILES
 
 
 add_library(${PROJECT_NAME} STATIC ${RNODE_FILES})
-
-if (NOT ${CMAKE_SYSTEM_NAME} MATCHES Generic)
-    add_executable(${PROJECT_NAME}_test ${RNODE_TEST_FILES})
-    if (NOT TARGET runit)
-        include(FetchContent)
-        FetchContent_Declare(
-                runit
-                GIT_REPOSITORY https://github.com/RoboticsHardwareSolutions/runit.git
-                GIT_TAG main
-        )
-        FetchContent_MakeAvailable(runit)
-    endif ()
-    if (NOT TARGET rlog)
-        include(FetchContent)
-        FetchContent_Declare(
-                rlog
-                GIT_REPOSITORY https://github.com/RoboticsHardwareSolutions/rlog.git
-                GIT_TAG main
-        )
-        FetchContent_MakeAvailable(rlog)
-    endif ()
-    if (NOT TARGET rtimeout)
-        include(FetchContent)
-        FetchContent_Declare(
-                rtimeout
-                GIT_REPOSITORY https://github.com/RoboticsHardwareSolutions/rtimeout.git
-                GIT_TAG main
-        )
-        FetchContent_MakeAvailable(rtimeout)
-    endif ()
-    target_link_libraries(${PROJECT_NAME}_test runit rlog rtimeout nanomsg)
-    enable_testing()
-    add_test(NAME ${PROJECT_NAME}_test COMMAND ${PROJECT_NAME}_test)
-endif ()
-
-#--------------
-
 target_include_directories(${PROJECT_NAME}
         PUBLIC ./
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         PRIVATE ${nanomsg_SOURCE_DIR})
 target_link_libraries(${PROJECT_NAME} PRIVATE nanomsg)
+
+
+add_executable(${PROJECT_NAME}_test ${RNODE_TEST_FILES})
+if (NOT TARGET runit)
+    include(FetchContent)
+    FetchContent_Declare(
+            runit
+            GIT_REPOSITORY https://github.com/RoboticsHardwareSolutions/runit.git
+            GIT_TAG main
+    )
+    FetchContent_MakeAvailable(runit)
+endif ()
+if (NOT TARGET rlog)
+    include(FetchContent)
+    FetchContent_Declare(
+            rlog
+            GIT_REPOSITORY https://github.com/RoboticsHardwareSolutions/rlog.git
+            GIT_TAG main
+    )
+    FetchContent_MakeAvailable(rlog)
+endif ()
+if (NOT TARGET rtimeout)
+    include(FetchContent)
+    FetchContent_Declare(
+            rtimeout
+            GIT_REPOSITORY https://github.com/RoboticsHardwareSolutions/rtimeout.git
+            GIT_TAG main
+    )
+    FetchContent_MakeAvailable(rtimeout)
+endif ()
+target_link_libraries(${PROJECT_NAME}_test runit rnode rlog rtimeout nanomsg)
+enable_testing()
+add_test(NAME ${PROJECT_NAME}_test COMMAND ${PROJECT_NAME}_test)
+
 
 
 #################### FORMAT SECTION #######################

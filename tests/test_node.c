@@ -1,8 +1,8 @@
 #include "test_node.h"
-#include "../rnode.h"
-#include "../runit/src/runit.h"
+#include "rnode.h"
+#include "runit.h"
 #include "test_defs.h"
-#include "../rtimeout/rtimeout.h"
+#include "rtimeout.h"
 #include "unistd.h"
 #include "pthread.h"
 #include <stdio.h>

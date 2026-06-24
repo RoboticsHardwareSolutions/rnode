@@ -1,6 +1,6 @@
 #include "rnode.h"
-#include <nng/compat/nanomsg/nn.h>
-#include <nng/compat/nanomsg/bus.h>
+#include <nanomsg/nn.h>
+#include <nanomsg/bus.h>
 #include <stdio.h>
 #include <string.h>
 #include "rnode_sem.h"
