@@ -1,9 +1,0 @@
-[submodule "rlog"]
-	path = rlog
-	url = https://github.com/RoboticsHardwareSolutions/rlog.git
-[submodule "rtimeout"]
-	path = rtimeout
-	url = https://github.com/RoboticsHardwareSolutions/rtimeout.git
-[submodule "runit"]
-	path = runit
-	url = https://github.com/RoboticsHardwareSolutions/runit.git

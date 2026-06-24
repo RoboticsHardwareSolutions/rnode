@@ -27,30 +27,66 @@ set(RNODE_TEST_FILES
         tests/test_proc.c
         tests/test_proc.h)
 
-# clang-format
-find_program(clang_format NAMES clang-format)
-if (NOT clang_format)
-    message(STATUS "Could not locate clang-format")
-else ()
-    file(GLOB format_files ${RNODE_TEST_FILES} ${RNODE_FILES})
-    add_custom_target(${PROJECT_NAME}_format COMMAND ${clang_format} -i -fallback-style=none -style=file --verbose ${format_files})
+
+add_library(${PROJECT_NAME} STATIC ${RNODE_FILES})
+
+if (NOT ${CMAKE_SYSTEM_NAME} MATCHES Generic)
+    add_executable(${PROJECT_NAME}_test ${RNODE_TEST_FILES})
+    if (NOT TARGET runit)
+        include(FetchContent)
+        FetchContent_Declare(
+                runit
+                GIT_REPOSITORY https://github.com/RoboticsHardwareSolutions/runit.git
+                GIT_TAG main
+        )
+        FetchContent_MakeAvailable(runit)
+    endif ()
+    if (NOT TARGET rlog)
+        include(FetchContent)
+        FetchContent_Declare(
+                rlog
+                GIT_REPOSITORY https://github.com/RoboticsHardwareSolutions/rlog.git
+                GIT_TAG main
+        )
+        FetchContent_MakeAvailable(rlog)
+    endif ()
+    if (NOT TARGET rtimeout)
+        include(FetchContent)
+        FetchContent_Declare(
+                rtimeout
+                GIT_REPOSITORY https://github.com/RoboticsHardwareSolutions/rtimeout.git
+                GIT_TAG main
+        )
+        FetchContent_MakeAvailable(rtimeout)
+    endif ()
+    target_link_libraries(${PROJECT_NAME}_test runit rlog rtimeout nanomsg)
+    enable_testing()
+    add_test(NAME ${PROJECT_NAME}_test COMMAND ${PROJECT_NAME}_test)
 endif ()
 
-
-add_subdirectory(runit)
-add_subdirectory(rlog)
-add_subdirectory(rtimeout)
-add_library(${PROJECT_NAME} STATIC ${RNODE_FILES})
+#--------------
 
 target_include_directories(${PROJECT_NAME}
         PUBLIC ./
         PRIVATE ${nanomsg_SOURCE_DIR})
-
 target_link_libraries(${PROJECT_NAME} PRIVATE nanomsg)
 
 
-if (NOT ${CMAKE_SYSTEM_NAME} MATCHES Generic)
-    add_executable(${PROJECT_NAME}_test ${RNODE_TEST_FILES} ${RNODE_FILES})
-    target_link_libraries(${PROJECT_NAME}_test PRIVATE nanomsg rlog rtimeout runit)
+#################### FORMAT SECTION #######################
+include(FetchContent)
+FetchContent_Declare(
+        rlibhelper
+        GIT_REPOSITORY https://github.com/RoboticsHardwareSolutions/rlibhelper.git
+        GIT_TAG main
+)
+FetchContent_MakeAvailable(rlibhelper)
+set(FILES_FOR_FORMATTING
+        ${RNODE_TEST_FILES}
+        ${RNODE_FILES}
+)
+if (EXISTS "${rlibhelper_SOURCE_DIR}/format.cmake")
+    include(${rlibhelper_SOURCE_DIR}/format.cmake)
+else ()
+    message(WARNING "format.cmake file not found")
 endif ()
-
+format_files(${PROJECT_NAME} SOURCES ${FILES_FOR_FORMATTING})
