@@ -8,6 +8,7 @@
 #include "test_defs.h"
 #include "runit.h"
 #include "help.h"
+#include "sys/wait.h"
 
 void test_send_packet_and_wait_incremented_echo(void)
 {
