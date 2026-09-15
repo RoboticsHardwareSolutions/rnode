@@ -29,7 +29,7 @@ target_include_directories(${PROJECT_NAME}
         PUBLIC ./
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         PRIVATE ${nanomsg_SOURCE_DIR})
-target_link_libraries(${PROJECT_NAME} PUBLIC nanomsg)
+target_link_libraries(${PROJECT_NAME} PUBLIC  rlog nanomsg)
 
 
 add_executable(${PROJECT_NAME}_test ${RNODE_TEST_FILES})

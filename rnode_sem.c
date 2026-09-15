@@ -3,7 +3,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <stdbool.h>
-#include "rlog/rlog.h"
+#include "rlog.h"
 
 sem_t* sem;
 
