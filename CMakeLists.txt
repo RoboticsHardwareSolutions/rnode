@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.9)
+cmake_minimum_required(VERSION 3.24)
 project(rnode
         VERSION 0.1.0
         LANGUAGES C
@@ -55,6 +55,7 @@ if (NOT TARGET rlog)
     )
     FetchContent_MakeAvailable(rlog)
 endif ()
+
 if (NOT TARGET rtimeout)
     include(FetchContent)
     FetchContent_Declare(
@@ -71,20 +72,24 @@ add_test(NAME ${PROJECT_NAME}_test COMMAND ${PROJECT_NAME}_test)
 
 
 #################### FORMAT SECTION #######################
-include(FetchContent)
-FetchContent_Declare(
-        rlibhelper
-        GIT_REPOSITORY https://github.com/RoboticsHardwareSolutions/rlibhelper.git
-        GIT_TAG main
-)
-FetchContent_MakeAvailable(rlibhelper)
-set(FILES_FOR_FORMATTING
-        ${RNODE_TEST_FILES}
-        ${RNODE_FILES}
-)
-if (EXISTS "${rlibhelper_SOURCE_DIR}/format.cmake")
-    include(${rlibhelper_SOURCE_DIR}/format.cmake)
-else ()
-    message(WARNING "format.cmake file not found")
+set(FILES_FOR_FORMATTING ${RNODE_TEST_FILES} ${RNODE_FILES} )
+
+if (NOT TARGET rlibhelper)
+    include(FetchContent)
+    FetchContent_Declare(
+            rlibhelper
+            GIT_REPOSITORY https://github.com/RoboticsHardwareSolutions/rlibhelper.git
+            GIT_TAG main
+    )
+    FetchContent_MakeAvailable(rlibhelper)
 endif ()
+
+if(EXISTS "${rlibhelper_SOURCE_DIR}/format.cmake")
+    include(${rlibhelper_SOURCE_DIR}/format.cmake)
+else()
+    message(WARNING "format.cmake file not found")
+endif()
 format_files(${PROJECT_NAME} SOURCES ${FILES_FOR_FORMATTING})
+
+
+
