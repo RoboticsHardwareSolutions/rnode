@@ -23,15 +23,6 @@ set(RNODE_TEST_FILES
         tests/test_proc.c
         tests/test_proc.h)
 
-
-add_library(${PROJECT_NAME} STATIC ${RNODE_FILES})
-target_include_directories(${PROJECT_NAME}
-        PUBLIC ./
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-        PRIVATE ${nanomsg_SOURCE_DIR})
-target_link_libraries(${PROJECT_NAME} PUBLIC  rlog nanomsg)
-
-
 add_executable(${PROJECT_NAME}_test ${RNODE_TEST_FILES})
 
 if (NOT TARGET runit)
@@ -74,6 +65,12 @@ if (NOT TARGET nanomsg)
     FetchContent_MakeAvailable(nanomsg)
 endif ()
 
+
+add_library(${PROJECT_NAME} STATIC ${RNODE_FILES})
+target_include_directories(${PROJECT_NAME}
+        PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}> )
+target_link_libraries(${PROJECT_NAME} PUBLIC rlog nanomsg rtimeout)
 target_link_libraries(${PROJECT_NAME}_test runit rnode rlog rtimeout nanomsg)
 enable_testing()
 add_test(NAME ${PROJECT_NAME}_test COMMAND ${PROJECT_NAME}_test)
