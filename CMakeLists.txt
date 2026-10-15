@@ -33,6 +33,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC  rlog nanomsg)
 
 
 add_executable(${PROJECT_NAME}_test ${RNODE_TEST_FILES})
+
 if (NOT TARGET runit)
     include(FetchContent)
     FetchContent_Declare(
@@ -42,6 +43,7 @@ if (NOT TARGET runit)
     )
     FetchContent_MakeAvailable(runit)
 endif ()
+
 if (NOT TARGET rlog)
     include(FetchContent)
     FetchContent_Declare(
@@ -61,11 +63,20 @@ if (NOT TARGET rtimeout)
     )
     FetchContent_MakeAvailable(rtimeout)
 endif ()
+
+if (NOT TARGET nanomsg)
+    include(FetchContent)
+    FetchContent_Declare(
+            nanomsg
+            GIT_REPOSITORY https://github.com/nanomsg/nanomsg.git
+            GIT_TAG master
+    )
+    FetchContent_MakeAvailable(nanomsg)
+endif ()
+
 target_link_libraries(${PROJECT_NAME}_test runit rnode rlog rtimeout nanomsg)
 enable_testing()
 add_test(NAME ${PROJECT_NAME}_test COMMAND ${PROJECT_NAME}_test)
-
-
 
 #################### FORMAT SECTION #######################
 set(FILES_FOR_FORMATTING ${RNODE_TEST_FILES} ${RNODE_FILES} )
