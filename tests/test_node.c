@@ -6,6 +6,7 @@
 #include "unistd.h"
 #include "pthread.h"
 #include <stdio.h>
+#include <string.h>
 #include "help.h"
 
 #include "urls.h"
@@ -323,4 +324,35 @@ void test_node_group_inproc8(void)
     runit_true(rnode_delete(&node5));
     runit_true(rnode_delete(&node6));
     runit_true(rnode_delete(&node7));
+}
+
+void test_node_slot_exhaustion(void)
+{
+    struct rnode nodes[TOTAL_NODE_QUANTITY] = {0};
+
+    for (int i = 0; i < TOTAL_NODE_QUANTITY; i++)
+    {
+        runit_true(rnode_create(&nodes[i], URL_DATA_EXCHANGE_EXHAUST));
+    }
+
+    /** every slot is taken: one more node must fail to find a free slot */
+    struct rnode one_too_many = {0};
+    runit_false(rnode_create(&one_too_many, URL_DATA_EXCHANGE_EXHAUST));
+
+    for (int i = 0; i < TOTAL_NODE_QUANTITY; i++)
+    {
+        runit_true(rnode_delete(&nodes[i]));
+    }
+}
+
+void test_node_url_too_long(void)
+{
+    /** longer than the internal ipc[30] buffer can hold together with the slot digits */
+    char         long_url[64];
+    struct rnode node = {0};
+
+    memset(long_url, 'a', sizeof(long_url) - 1);
+    long_url[sizeof(long_url) - 1] = '\0';
+
+    runit_false(rnode_create(&node, long_url));
 }

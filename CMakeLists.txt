@@ -75,12 +75,14 @@ else ()
 endif ()
 
 
+find_package(Threads REQUIRED)
+
 add_library(${PROJECT_NAME} STATIC ${RNODE_FILES})
 target_include_directories(${PROJECT_NAME}
         PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}> )
 target_include_directories(${PROJECT_NAME} PRIVATE ${RNODE_NANOMSG_INCLUDE_DIR})
-target_link_libraries(${PROJECT_NAME} PUBLIC rlog nanomsg rtimeout)
+target_link_libraries(${PROJECT_NAME} PUBLIC rlog nanomsg rtimeout Threads::Threads)
 target_link_libraries(${PROJECT_NAME}_test runit rnode rlog rtimeout nanomsg)
 enable_testing()
 add_test(NAME ${PROJECT_NAME}_test COMMAND ${PROJECT_NAME}_test)

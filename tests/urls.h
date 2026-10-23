@@ -3,5 +3,6 @@
 
 #define URL_DATA_EXCHANGE_IN_PROC "inproc://node"
 #define URL_DATA_EXCHANGE_INTER_PROC "ipc:///tmp/node"
+#define URL_DATA_EXCHANGE_EXHAUST "inproc://exhaust"
 
 #endif  //__URLS_H__

@@ -4,14 +4,19 @@
 #include <stdio.h>
 #include <string.h>
 #include "rnode_sem.h"
+#include "rlog.h"
 
-int node_bind(struct rnode* n, char* url)
+static int node_bind(struct rnode* n, const char* url)
 {
     char ipc[30];
-    int  i = 0;
-    for (; i < TOTAL_NODE_QUANTITY; i++)
+    for (int i = 0; i < TOTAL_NODE_QUANTITY; i++)
     {
-        sprintf(ipc, "%s%d", url, i);
+        int written = snprintf(ipc, sizeof(ipc), "%s%d", url, i);
+        if (written < 0 || (size_t) written >= sizeof(ipc))
+        {
+            RLOG_ERROR("rnode: url '%s' too long for the ipc buffer", url);
+            return -1;
+        }
         int res = nn_bind(n->sock, ipc);
         if (res >= 0)
         {
@@ -21,30 +26,39 @@ int node_bind(struct rnode* n, char* url)
     return -1;
 }
 
-bool node_connect(struct rnode* n, int num, char* url)
+static bool node_connect(struct rnode* n, int num, const char* url)
 {
     char ipc[30];
-    int  index = num - 1;
-    while (!(index < 0))
+    // connects to every slot below the one just bound (0 .. num-1), building a full mesh.
+    // n->eid ends up holding only the id of the last (slot 0) connection: there is no
+    // per-endpoint disconnect API, so the intermediate ids are intentionally not kept.
+    for (int index = num - 1; index >= 0; index--)
     {
-        sprintf(ipc, "%s%d", url, index);
+        int written = snprintf(ipc, sizeof(ipc), "%s%d", url, index);
+        if (written < 0 || (size_t) written >= sizeof(ipc))
+        {
+            RLOG_ERROR("rnode: url '%s' too long for the ipc buffer", url);
+            return false;
+        }
         n->eid = nn_connect(n->sock, ipc);
         if (n->eid < 0)
         {
             return false;
         }
-        index--;
     }
     return true;
 }
 
-bool rnode_create(struct rnode* n, char* url)
+bool rnode_create(struct rnode* n, const char* url)
 {
     if (!node_sem_init())
     {
         return false;
     }
-    node_sem_enter_critical();
+    if (!node_sem_enter_critical())
+    {
+        return false;
+    }
     n->sock = nn_socket(AF_SP, NN_BUS);
     if (n->sock == -1)
     {
@@ -54,17 +68,20 @@ bool rnode_create(struct rnode* n, char* url)
     int num = node_bind(n, url);
     if (num < 0)
     {
+        nn_close(n->sock);
         node_sem_leave_critical();
         return false;
     }
     if (!node_connect(n, num, url))
     {
+        nn_close(n->sock);
         node_sem_leave_critical();
         return false;
     }
     int to = WAIT_MESSAGE_TIMEOUT_MS;
     if (nn_setsockopt(n->sock, NN_SOL_SOCKET, NN_RCVTIMEO, &to, sizeof(to)) < 0)
     {
+        nn_close(n->sock);
         node_sem_leave_critical();
         return false;
     }
@@ -86,7 +103,7 @@ bool rnode_receive(struct rnode* n, void* data, size_t len)
     return true;
 }
 
-bool rnode_send(struct rnode* n, void* data, size_t len)
+bool rnode_send(struct rnode* n, const void* data, size_t len)
 {
     int rc = nn_send(n->sock, data, len, 0);
     if (rc < 0)
